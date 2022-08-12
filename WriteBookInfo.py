@@ -1,11 +1,20 @@
-from spwd import struct_spwd
 import RPi.GPIO as GPIO
 from mfrc522 import SimpleMFRC522
 from pynodered import node_red
 import spidev
+import time
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
+leds = {
+    "1":24,
+    "2":22,
+    "3":27,
+    "4":17
+}
+
+for i in range(len(list(leds.values()))):
+    GPIO.setup(list(leds.values())[i], GPIO.OUT)
 
 class NFC():
     def __init__(self, bus=0, device=0,spd=1000000):
@@ -62,6 +71,48 @@ class NFC():
         self.close()
         return True
 
-"""@node_read(category="BookShelfFuncs")
+nfc = NFC()
+nfc.addBoard("reader1",5)
+nfc.addBoard("reader2",6)
+nfc.addBoard("reader3",13)
+nfc.addBoard("reader4",19)
+
+    
+@node_red(category="BookShelfFuncs")
 def writeData(node, msg):
-    nfc.write('reader1', msg)"""
+    TitleInput = msg['payload']['TitleInput']
+    AuthorInput = msg['payload']['AuthorInput']
+    writeText = TitleInput+' '+AuthorInput
+    nfc.write('reader1', writeText)
+    try:
+        if nfc.read('reader1') != None:
+            if nfc.read('reader1')[0:len(writeText)] == writeText:
+                return {'payload':'Success'}
+            else:
+                return {'payload':'Try Again'}
+        else:
+            return {'payload':'Tag too far away!'}
+    except:
+        return {'payload':'Error! Despair!'}
+
+
+@node_red(category="BookShelfFuncs")
+def readData(node,msg):
+    books = []
+    for reader in range(1,len(list(nfc.boards.keys()))):
+        try:
+            split = nfc.read(list(nfc.boards.keys())[reader]).split()
+            books.append({"Title":split[0],"Author":split[1]})
+        except:
+            books.append({"Title":"Empty","Author":"Empty"})
+    books = {'payload':books}
+    return books
+
+@node_red(category="BookShelfFuncs")
+def openBook(node,msg):
+    for i in range(10):
+        GPIO.output(leds[str(msg['payload']['id']+1)], 1)
+        time.sleep(0.25)
+        GPIO.output(leds[str(msg['payload']['id']+1)], 0)
+        time.sleep(0.25)
+
