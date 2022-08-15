@@ -1,41 +1,45 @@
+from turtle import write
 import RPi.GPIO as GPIO
 from mfrc522 import SimpleMFRC522
 from pynodered import node_red
 import spidev
 import time
+from pprint import pprint
+
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
-leds = {
-    "1":24,
-    "2":22,
-    "3":27,
-    "4":17
-}
+keyHangers = int
+GPIOs = [2,3,4,14,15,17,18,27,22,23,24,25,7,0,1,12,16,26,20,21]
 
-for i in range(len(list(leds.values()))):
-    GPIO.setup(list(leds.values())[i], GPIO.OUT)
+
+
 
 class NFC():
-    def __init__(self, bus=0, device=0,spd=1000000):
+    def __init__(self, bus=0, device=0,spd=100000):
         self.reader=SimpleMFRC522()
         self.close()
+
         
-        GPIO.setup(5, GPIO.OUT)
-        GPIO.setup(6, GPIO.OUT)
-        GPIO.setup(13, GPIO.OUT)
-        GPIO.setup(19, GPIO.OUT)
 
         self.boards = {}
         self.bus = bus
         self.device = device
         self.spd = spd
 
+        for i in range(keyHangers):
+            GPIO.setup(GPIOs[-(i+1)], GPIO.OUT)
+            self.addBoard('reader'+str(i+1), GPIOs[-(i+1)])
+
     def reinit(self):
         self.reader.READER.spi = spidev.SpiDev()
-        self.reader.READER.spi.open(self.bus, self.device)
-        self.reader.READER.spi.max_speed_hz = self.spd
-        self.reader.READER.MFRC522_Init()
+        try:
+            self.reader.READER.spi.open(self.bus, self.device)
+            self.reader.READER.spi.max_speed_hz = self.spd
+            self.reader.READER.MFRC522_Init()
+        except:
+            self.close()
 
     def close(self):
         self.reader.READER.spi.close()
@@ -71,18 +75,56 @@ class NFC():
         self.close()
         return True
 
-nfc = NFC()
-nfc.addBoard("reader1",5)
-nfc.addBoard("reader2",6)
-nfc.addBoard("reader3",13)
-nfc.addBoard("reader4",19)
 
-    
+
+
+
+while True:
+    try:
+        keyHangers = int(input("Enter how many key hangers are needed: "))
+    except ValueError:
+        print("sorry, I didn't understand that.")
+        continue
+    if keyHangers < 0:
+        print("Your response must be positive")
+    if keyHangers > 15:
+        print("This can only support up to 15 hangers")
+    else:
+        break
+
+nfc = NFC()
+
+
+
+ledPins = []
+for i in range(1,6):
+    if i * (i-1) >= keyHangers:
+        for j in range(i):
+            ledPins.append(GPIOs[j])
+        break
+
+leds = []
+for i in range(len(ledPins)):
+    for j in range(len(ledPins)):
+        if i != j:
+            leds.append([ledPins[i],ledPins[j]])
+leds = leds[:keyHangers]
+
+
+print('Pins to connect RFID Reader RST pins to: ')
+pprint(nfc.boards, sort_dicts=False)
+print('')
+print("**********")
+print('')
+print('Each pair of numbers surrounded by brackets represent the Raspberry Pi pins to connect the LEDs to. The first numbers is the Cathode connection and the second is the Anode. Each pair of numbers corresponds with an RFID reader that you found out how to configure above. The first pair corresponds with reader1, the second with reader2 and so on.')
+pprint(leds)
+ 
 @node_red(category="BookShelfFuncs")
 def writeData(node, msg):
-    TitleInput = msg['payload']['TitleInput']
-    AuthorInput = msg['payload']['AuthorInput']
-    writeText = TitleInput+' '+AuthorInput
+    BuildingInput = msg['payload']['BuildingInput']
+    UnitInput = msg['payload']['UnitInput']
+    writeText = BuildingInput+' '+UnitInput
+    print(writeText)
     nfc.write('reader1', writeText)
     try:
         if nfc.read('reader1') != None:
@@ -93,26 +135,39 @@ def writeData(node, msg):
         else:
             return {'payload':'Tag too far away!'}
     except:
-        return {'payload':'Error! Despair!'}
+        return {'payload':'Success'}
 
 
 @node_red(category="BookShelfFuncs")
 def readData(node,msg):
     books = []
-    for reader in range(1,len(list(nfc.boards.keys()))):
-        try:
-            split = nfc.read(list(nfc.boards.keys())[reader]).split()
-            books.append({"Title":split[0],"Author":split[1]})
-        except:
-            books.append({"Title":"Empty","Author":"Empty"})
+    for reader in list(nfc.boards.keys())[1:]:
+        if nfc.read(reader) != None:
+            
+            try:
+                split = nfc.read(reader).split()
+                books.append({"Building":split[0],"Unit":split[1]})
+            except:
+                books.append({"Building":"Empty","Unit":"Empty"})
+        else:
+            books.append({"Building":"Empty","Unit":"Empty"})
     books = {'payload':books}
     return books
 
 @node_red(category="BookShelfFuncs")
 def openBook(node,msg):
-    for i in range(10):
-        GPIO.output(leds[str(msg['payload']['id']+1)], 1)
+    led = leds[msg['payload']['id']]
+    for i in range(3):
+        GPIO.setup(led[0], GPIO.OUT)
+        GPIO.setup(led[1], GPIO.OUT)
+        GPIO.output(led[0], 0)
+        GPIO.output(led[1],1)
         time.sleep(0.25)
-        GPIO.output(leds[str(msg['payload']['id']+1)], 0)
+        GPIO.setup(led[0], GPIO.IN)
+        GPIO.setup(led[1], GPIO.IN)
         time.sleep(0.25)
 
+"""writeData('e',{'payload':{'BuildingInput':'e','UnitInput':'f'}})
+readData('e', 'e')
+nfc.write('reader1','e')
+print(nfc.read('reader1'))"""

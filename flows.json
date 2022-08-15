@@ -1,0 +1,268 @@
+[
+    {
+        "id": "0f722879eeabc17e",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "709b09686524b37c",
+        "type": "ui_form",
+        "z": "0f722879eeabc17e",
+        "name": "",
+        "label": "",
+        "group": "33c42d8315321f93",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "options": [
+            {
+                "label": "Building",
+                "value": "BuildingInput",
+                "type": "text",
+                "required": true,
+                "rows": null
+            },
+            {
+                "label": "Unit #",
+                "value": "UnitInput",
+                "type": "text",
+                "required": true,
+                "rows": null
+            }
+        ],
+        "formValue": {
+            "BuildingInput": "",
+            "UnitInput": ""
+        },
+        "payload": "",
+        "submit": "submit",
+        "cancel": "cancel",
+        "topic": "topic",
+        "topicType": "msg",
+        "splitLayout": "",
+        "className": "",
+        "x": 130,
+        "y": 120,
+        "wires": [
+            [
+                "b2312f287c683768"
+            ]
+        ]
+    },
+    {
+        "id": "b2312f287c683768",
+        "type": "writeData",
+        "z": "0f722879eeabc17e",
+        "x": 280,
+        "y": 120,
+        "wires": [
+            [
+                "d46d614765605100",
+                "8a23ce42aa957fbc"
+            ]
+        ]
+    },
+    {
+        "id": "d46d614765605100",
+        "type": "ui_text",
+        "z": "0f722879eeabc17e",
+        "group": "33c42d8315321f93",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Input Status",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "className": "",
+        "x": 470,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "e3b5228d0d25e71d",
+        "type": "ui_table",
+        "z": "0f722879eeabc17e",
+        "group": "4455a7b0c340add3",
+        "name": "Key List",
+        "order": 1,
+        "width": "6",
+        "height": "14",
+        "columns": [
+            {
+                "field": "Building",
+                "title": "Building",
+                "width": "150",
+                "align": "left",
+                "formatter": "plaintext",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            },
+            {
+                "field": "Unit",
+                "title": "Unit",
+                "width": "150",
+                "align": "left",
+                "formatter": "plaintext",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            }
+        ],
+        "outputs": 1,
+        "cts": true,
+        "x": 380,
+        "y": 320,
+        "wires": [
+            [
+                "c2722c034a88ec23"
+            ]
+        ],
+        "inputLabels": [
+            ","
+        ]
+    },
+    {
+        "id": "8a23ce42aa957fbc",
+        "type": "readData",
+        "z": "0f722879eeabc17e",
+        "x": 260,
+        "y": 280,
+        "wires": [
+            [
+                "e3b5228d0d25e71d"
+            ]
+        ]
+    },
+    {
+        "id": "c2722c034a88ec23",
+        "type": "openBook",
+        "z": "0f722879eeabc17e",
+        "x": 500,
+        "y": 360,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "77a0f0ad2391be42",
+        "type": "inject",
+        "z": "0f722879eeabc17e",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 110,
+        "y": 360,
+        "wires": [
+            [
+                "8a23ce42aa957fbc"
+            ]
+        ]
+    },
+    {
+        "id": "6f262d7afc79b2ae",
+        "type": "ui_text",
+        "z": "0f722879eeabc17e",
+        "group": "4c792e6de1fb4093",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "name": "Instructions",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "x": 390,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "987f301cd8536ed7",
+        "type": "inject",
+        "z": "0f722879eeabc17e",
+        "name": "InstructionsInject",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "Attach the key to the magnet in the top left highlighted in yellow. Enter its details in the input section and enter. Take the key and stick it on to any other magnet. ",
+        "payloadType": "str",
+        "x": 150,
+        "y": 440,
+        "wires": [
+            [
+                "6f262d7afc79b2ae"
+            ]
+        ]
+    },
+    {
+        "id": "33c42d8315321f93",
+        "type": "ui_group",
+        "name": "Key Input",
+        "tab": "2b4de0c1abd2f331",
+        "order": 3,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "4455a7b0c340add3",
+        "type": "ui_group",
+        "name": "Key List",
+        "tab": "2b4de0c1abd2f331",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "4c792e6de1fb4093",
+        "type": "ui_group",
+        "name": "Instructions",
+        "tab": "2b4de0c1abd2f331",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "2b4de0c1abd2f331",
+        "type": "ui_tab",
+        "name": "Keys",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    }
+]
