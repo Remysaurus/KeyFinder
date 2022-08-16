@@ -156,7 +156,7 @@ def readData(node,msg):
 
 @node_red(category="BookShelfFuncs")
 def openBook(node,msg):
-    led = leds[msg['payload']['id']]
+    led = leds[int(msg['payload']['id']) + 1]
     for i in range(3):
         GPIO.setup(led[0], GPIO.OUT)
         GPIO.setup(led[1], GPIO.OUT)
